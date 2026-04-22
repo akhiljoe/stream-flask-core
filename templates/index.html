@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>JoeTube</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <div class="layout" id="app">
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <span class="brand-icon">▶</span>
+          <span class="brand-name">JoeTube</span>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+          <button class="icon-btn sidebar-close-btn" id="sidebarClose" aria-label="Close sidebar">✕</button>
+        </div>
+      </div>
+      <div class="sidebar-body">
+        <p class="sidebar-label">VIDEO FOLDERS</p>
+        <nav id="folderList" class="folder-list" role="navigation" aria-label="Video folders">
+          <div class="state-msg">Scanning...</div>
+        </nav>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+
+      <header class="topbar" role="banner">
+        <button class="icon-btn" id="sidebarToggle" aria-label="Open sidebar">☰</button>
+        <span id="topbarTitle" class="topbar-title">JoeTube</span>
+        <button class="icon-btn" id="themeToggleMobile" aria-label="Toggle theme">☀️</button>
+      </header>
+
+      <main class="main" id="main" role="main">
+
+        <section class="player-section" id="playerSection" aria-label="Video player">
+
+          <div class="player-header">
+            <h2 class="player-title" id="playerTitle">Select a video</h2>
+            <p class="player-meta" id="playerMeta"></p>
+          </div>
+
+          <div class="player-container" id="playerContainer">
+
+            <div class="video-wrapper" id="videoWrapper">
+              <video id="mainVideo" preload="metadata" tabindex="-1"></video>
+
+              <div class="video-overlay" id="videoOverlay" role="button" tabindex="0"
+                   aria-label="Play/Pause">
+                <button class="big-play-btn" id="overlayPlayBtn" aria-label="Play">▶</button>
+              </div>
+
+              <div class="video-loading hidden" id="videoLoading" aria-live="polite">
+                <div class="spinner" role="status" aria-label="Loading"></div>
+              </div>
+
+              <!-- Speed feedback shown during long-press -->
+              <div class="speed-indicator" id="speedIndicator"></div>
+
+              <div class="mini-overlay" id="miniOverlay">
+                <div class="mini-overlay-top">
+                  <span class="mini-drag-handle" id="miniDragHandle"></span>
+                  <span class="mini-overlay-title" id="miniOverlayTitle"></span>
+                  <div class="mini-overlay-actions">
+                    <button class="mini-btn mini-back-btn" id="miniClose"
+                            aria-label="Return to main player">↑ Back</button>
+                    <button class="mini-close-x" id="miniCloseX"
+                            aria-label="Stop and close player">✕</button>
+                  </div>
+                </div>
+                <div class="mini-overlay-bottom">
+                  <button class="mini-btn" id="miniPlayBtn" aria-label="Play/Pause">▶</button>
+                  <button class="mini-btn" id="miniPrevBtn" aria-label="Previous">⏮</button>
+                  <button class="mini-btn" id="miniNextBtn" aria-label="Next">⏭</button>
+                  <button class="mini-btn" id="miniSkipBtn" aria-label="Skip 10 seconds">+10s</button>
+                </div>
+              </div>
+            </div><div class="controls-bar" id="controlsBar">
+
+              <div class="seek-row">
+                <span class="time-label" id="currentTime" aria-live="off">0:00</span>
+                <div class="seek-track-wrap">
+                  <div class="seek-track" id="seekTrack">
+                    <div class="seek-buffered" id="seekBuffered"></div>
+                    <div class="seek-filled"   id="seekFilled"></div>
+                  </div>
+                  <input type="range" class="seek-input" id="seekBar"
+                         min="0" max="100" step="0.01" value="0"
+                         aria-label="Seek">
+                </div>
+                <span class="time-label" id="totalTime">0:00</span>
+              </div>
+
+              <div class="btn-row">
+                <div class="btn-group">
+                  <button class="ctrl-btn" id="prevBtn" title="Previous [P]" aria-label="Previous">⏮</button>
+                  <button class="ctrl-btn play-pause-btn" id="playBtn"
+                          title="Play/Pause [Space]" aria-label="Play">▶</button>
+                  <button class="ctrl-btn" id="nextBtn" title="Next [N]" aria-label="Next">⏭</button>
+                  <div class="volume-wrap">
+                    <button class="ctrl-btn" id="muteBtn" title="Mute [M]" aria-label="Mute">🔊</button>
+                    <input type="range" class="volume-slider" id="volumeSlider"
+                           min="0" max="1" step="0.05" value="1"
+                           aria-label="Volume">
+                  </div>
+                </div>
+
+                <div class="btn-group btn-group-right">
+                  <select class="speed-select" id="speedSelect" aria-label="Playback speed">
+                    <option value="0.5">0.5×</option>
+                    <option value="0.75">0.75×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="1.25">1.25×</option>
+                    <option value="1.5">1.5×</option>
+                    <option value="2">2×</option>
+                  </select>
+                  <label class="autoplay-label" title="Autoplay next video">
+                    <input type="checkbox" id="autoplayToggle">
+                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    <span class="toggle-text">Autoplay</span>
+                  </label>
+                  <button class="ctrl-btn" id="fullscreenBtn" title="Fullscreen [F]" aria-label="Fullscreen">⛶</button>
+                </div>
+              </div>
+
+            </div></div></section><div id="playerSentinel" aria-hidden="true"></div>
+
+        <section class="gallery-section" id="gallerySection" aria-label="Video library">
+          <div class="gallery-header">
+            <h3 class="gallery-title" id="galleryTitle">No folder selected</h3>
+            <span class="gallery-count" id="galleryCount"></span>
+            <div class="search-box">
+              <input type="text" id="videoSearch" placeholder="Search all videos..." aria-label="Search all videos">
+            </div>
+          </div>
+          <div class="gallery-grid" id="galleryGrid" role="list">
+            <div class="empty-state" id="emptyState" role="status">
+              <div class="empty-icon">📁</div>
+              <p>Pick a folder from the sidebar to start browsing.</p>
+              <p class="empty-hint">Keyboard: <kbd>Space</kbd> play · <kbd>←</kbd><kbd>→</kbd> seek · <kbd>N</kbd><kbd>P</kbd> next/prev · <kbd>F</kbd> fullscreen</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div></div>
+
+  <div class="toast hidden" id="toast" role="alert" aria-live="assertive"></div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ----------------------------------------------------------------
+    // State
+    // ----------------------------------------------------------------
+    const state = {
+      folders:        [],
+      allVideos:      [],     // global index for search
+      currentFolder:  null,
+      videos:         [],     // current folder's videos
+      currentIndex:   -1,
+      miniActive:     false,
+      playerObserver: null,
+      cardObserver:   null,
+      isGlobalSearch: false,  // true while a search query is active
+    };
+
+    // ----------------------------------------------------------------
+    // DOM refs
+    // ----------------------------------------------------------------
+    const get = (id) => document.getElementById(id);
+
+    const video            = get('mainVideo');
+    const playerSection    = get('playerSection');
+    const playerContainer  = get('playerContainer');
+    const videoWrapper     = get('videoWrapper');
+    const speedIndicator   = get('speedIndicator');
+
+    const seekBar          = get('seekBar');
+    const seekFilled       = get('seekFilled');
+    const seekBuffered     = get('seekBuffered');
+    const currentTimeEl    = get('currentTime');
+    const totalTimeEl      = get('totalTime');
+    const playBtn          = get('playBtn');
+    const prevBtn          = get('prevBtn');
+    const nextBtn          = get('nextBtn');
+    const muteBtn          = get('muteBtn');
+    const volumeSlider     = get('volumeSlider');
+    const speedSelect      = get('speedSelect');
+    const autoplayToggle   = get('autoplayToggle');
+    const overlayPlayBtn   = get('overlayPlayBtn');
+    const videoOverlay     = get('videoOverlay');
+    const videoLoading     = get('videoLoading');
+    const fullscreenBtn    = get('fullscreenBtn');
+
+    const miniOverlay      = get('miniOverlay');
+    const miniOverlayTitle = get('miniOverlayTitle');
+    const miniPlayBtn      = get('miniPlayBtn');
+    const miniPrevBtn      = get('miniPrevBtn');
+    const miniNextBtn      = get('miniNextBtn');
+    const miniSkipBtn      = get('miniSkipBtn');
+    const miniClose        = get('miniClose');
+    const miniCloseX       = get('miniCloseX');
+    const miniDragHandle   = get('miniDragHandle');
+    const playerSentinel   = get('playerSentinel');
+
+    const sidebar            = get('sidebar');
+    const sidebarToggle      = get('sidebarToggle');
+    const sidebarClose       = get('sidebarClose');
+    const folderList         = get('folderList');
+    const galleryGrid        = get('galleryGrid');
+    const galleryTitle       = get('galleryTitle');
+    const galleryCount       = get('galleryCount');
+    const playerTitle        = get('playerTitle');
+    const playerMeta         = get('playerMeta');
+    const topbarTitle        = get('topbarTitle');
+    const toastEl            = get('toast');
+    const themeToggle        = get('themeToggle');
+    const themeToggleMobile  = get('themeToggleMobile');
+    const videoSearch        = get('videoSearch');
+
+
+    // ----------------------------------------------------------------
+    // Preferences
+    // ----------------------------------------------------------------
+    function loadPrefs() {
+      const theme    = localStorage.getItem('sl_theme')    || 'dark';
+      const autoplay = localStorage.getItem('sl_autoplay') === 'true';
+      const volume   = parseFloat(localStorage.getItem('sl_volume') ?? '1');
+      const speed    = parseFloat(localStorage.getItem('sl_speed')  ?? '1');
+
+      applyTheme(theme);
+      autoplayToggle.checked = autoplay;
+      video.volume           = isNaN(volume) ? 1 : volume;
+      volumeSlider.value     = video.volume;
+      video.playbackRate     = isNaN(speed) ? 1 : speed;
+      speedSelect.value      = String(video.playbackRate);
+    }
+
+    function savePrefs() {
+      localStorage.setItem('sl_theme',    document.documentElement.getAttribute('data-theme'));
+      localStorage.setItem('sl_autoplay', autoplayToggle.checked);
+      localStorage.setItem('sl_volume',   video.volume);
+      localStorage.setItem('sl_speed',    video.playbackRate);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const icon = theme === 'dark' ? '☀️' : '🌙';
+      themeToggle.textContent       = icon;
+      themeToggleMobile.textContent = icon;
+    }
+
+    function toggleTheme() {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      savePrefs();
+    }
+
+    themeToggle.addEventListener('click', toggleTheme);
+    themeToggleMobile.addEventListener('click', toggleTheme);
+
+
+    // ----------------------------------------------------------------
+    // API calls
+    // ----------------------------------------------------------------
+    async function fetchFolders() {
+      folderList.innerHTML = '<div class="state-msg">Loading folders...</div>';
+      try {
+        const res = await fetch('/api/folders');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        state.folders = await res.json();
+        renderFolders();
+      } catch (err) {
+        folderList.innerHTML = `<div class="state-msg error-msg">Failed to load folders.<br>${err.message}</div>`;
+      }
+    }
+
+    async function fetchAllVideos() {
+      // Pre-load the global search index in the background; non-blocking.
+      try {
+        const res = await fetch('/api/all-videos');
+        if (!res.ok) return;
+        state.allVideos = await res.json();
+      } catch (_) {
+        // Non-critical; search will just be empty if this fails.
+      }
+    }
+
+    async function fetchVideos(folderPath) {
+      setGalleryState('loading');
+      try {
+        const res = await fetch(`/api/videos/${encodeURIComponent(folderPath)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        state.videos        = await res.json();
+        state.currentFolder = folderPath;
+        state.isGlobalSearch = false;
+        videoSearch.value   = '';
+        renderVideos(state.videos);
+      } catch (err) {
+        setGalleryState('error', err.message);
+      }
+    }
+
+
+    // ----------------------------------------------------------------
+    // Render: Folders
+    // ----------------------------------------------------------------
+    function renderFolders() {
+      if (!state.folders.length) {
+        folderList.innerHTML = '<div class="state-msg">No video folders found in VIDEO_ROOT.</div>';
+        return;
+      }
+
+      folderList.innerHTML = state.folders.map(f => `
+        <button class="folder-item" data-path="${escAttr(f.path)}" data-name="${escAttr(f.name)}"
+                role="menuitem">
+          <span class="folder-icon" aria-hidden="true">📁</span>
+          <span class="folder-name">${escHtml(f.name)}</span>
+        </button>
+      `).join('');
+
+      folderList.querySelectorAll('.folder-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          folderList.querySelectorAll('.folder-item').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          fetchVideos(btn.dataset.path);
+          if (window.innerWidth < 768) sidebar.classList.remove('open');
+        });
+      });
+    }
+
+
+    // ----------------------------------------------------------------
+    // Render: Gallery
+    // ----------------------------------------------------------------
+
+    /**
+     * Renders a list of video objects into galleryGrid.
+     * showFolder: if true, shows a folder badge on each card (used in global search).
+     */
+    function renderVideos(videos, showFolder = false) {
+      if (state.cardObserver) state.cardObserver.disconnect();
+
+      if (!videos.length) {
+        setGalleryState('empty');
+        return;
+      }
+
+      galleryCount.textContent = `${videos.length} video${videos.length !== 1 ? 's' : ''}`;
+
+      galleryGrid.innerHTML = videos.map((v, i) => `
+        <div class="video-card" role="listitem button" tabindex="0"
+             data-index="${i}"
+             data-path="${escAttr(v.path)}"
+             data-folder-path="${escAttr(v.folder_path || state.currentFolder || '.')}"
+             aria-label="${escAttr(v.filename)}">
+          <div class="card-thumb-wrap" aria-hidden="true">
+            <img class="card-thumb" src="${escAttr(v.thumb)}" loading="lazy" alt="">
+            <span class="card-play-icon">▶</span>
+            <span class="card-ext">${escHtml(getExt(v.filename))}</span>
+          </div>
+          <div class="card-info">
+            <p class="card-title" title="${escAttr(v.filename)}">${escHtml(v.filename)}</p>
+            <p class="card-size">${formatBytes(v.size)}</p>
+            ${showFolder && v.folder ? `<span class="card-folder-badge">📁 ${escHtml(v.folder)}</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      galleryGrid.querySelectorAll('.video-card').forEach(card => {
+        const idx = parseInt(card.dataset.index);
+        const activate = () => {
+          if (state.isGlobalSearch) {
+            // Load the folder for this video, then play it
+            const targetFolder = card.dataset.folderPath;
+            const targetPath   = card.dataset.path;
+            loadFolderThenPlay(targetFolder, targetPath);
+          } else {
+            playVideo(idx);
+          }
+          playerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        card.addEventListener('click', activate);
+        card.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+        });
+      });
+
+      state.cardObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            state.cardObserver.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+
+      galleryGrid.querySelectorAll('.video-card').forEach(c => state.cardObserver.observe(c));
+    }
+
+    /**
+     * When a global search result is clicked, fetch that folder, then play the specific file.
+     */
+    async function loadFolderThenPlay(folderPath, videoRelPath) {
+      try {
+        const res = await fetch(`/api/videos/${encodeURIComponent(folderPath)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        state.videos        = await res.json();
+        state.currentFolder = folderPath;
+
+        // Highlight the matching folder in sidebar
+        folderList.querySelectorAll('.folder-item').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.path === folderPath);
+        });
+
+        const idx = state.videos.findIndex(v => v.path === videoRelPath);
+        playVideo(idx >= 0 ? idx : 0);
+      } catch (err) {
+        showToast(`Could not load folder: ${err.message}`);
+      }
+    }
+
+    function setGalleryState(type, msg) {
+      galleryCount.textContent = '';
+      let content;
+      switch (type) {
+        case 'loading':
+          content = `<div class="empty-state"><div class="spinner"></div><p>Loading videos...</p></div>`;
+          break;
+        case 'empty':
+          content = `<div class="empty-state"><div class="empty-icon">🎞️</div><p>No videos found.</p></div>`;
+          break;
+        case 'error':
+          content = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Error: ${escHtml(msg)}</p></div>`;
+          break;
+        default:
+          content = `<div class="empty-state" id="emptyState">
+            <div class="empty-icon">📁</div>
+            <p>Pick a folder from the sidebar to start browsing.</p>
+            <p class="empty-hint">Keyboard: <kbd>Space</kbd> play · <kbd>←</kbd><kbd>→</kbd> seek · <kbd>N</kbd><kbd>P</kbd> next/prev · <kbd>F</kbd> fullscreen</p>
+          </div>`;
+      }
+      galleryGrid.innerHTML = content;
+    }
+
+
+    // ----------------------------------------------------------------
+    // Global Search
+    // ----------------------------------------------------------------
+    videoSearch.addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+
+      if (!q) {
+        // Return to current folder view
+        state.isGlobalSearch = false;
+        if (state.currentFolder !== null) {
+          galleryTitle.textContent = state.currentFolder === '.' ? 'Root Videos' : state.currentFolder;
+          renderVideos(state.videos, false);
+        } else {
+          setGalleryState('default');
+        }
+        return;
+      }
+
+      // Search across all pre-fetched videos
+      state.isGlobalSearch = true;
+      galleryTitle.textContent = `Search: "${e.target.value.trim()}"`;
+
+      const results = state.allVideos.filter(v =>
+        v.filename.toLowerCase().includes(q) || (v.folder && v.folder.toLowerCase().includes(q))
+      );
+
+      galleryCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''}`;
+      renderVideos(results, true);
+    });
+
+
+    // ----------------------------------------------------------------
+    // Player
+    // ----------------------------------------------------------------
+    function playVideo(index) {
+      if (index < 0 || index >= state.videos.length) return;
+      state.currentIndex = index;
+      const v = state.videos[index];
+
+      video.src = `/stream/${v.path}`;
+      video.load();
+      video.play().catch(() => {});
+
+      const title = stripExt(v.filename);
+      playerTitle.textContent      = v.filename;
+      playerMeta.textContent       = `${v.filename}  ·  ${formatBytes(v.size)}`;
+      miniOverlayTitle.textContent = title;
+      topbarTitle.textContent      = title;
+      document.title               = `${title} · JoeTube`;
+
+      markActiveCard(index);
+      updateNavBtns();
+    }
+
+    function markActiveCard(index) {
+      galleryGrid.querySelectorAll('.video-card').forEach((c, i) => {
+        c.classList.toggle('playing', i === index);
+      });
+      const active = galleryGrid.querySelector('.video-card.playing');
+      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function updateNavBtns() {
+      prevBtn.disabled = miniPrevBtn.disabled = state.currentIndex <= 0;
+      nextBtn.disabled = miniNextBtn.disabled = state.currentIndex >= state.videos.length - 1;
+    }
+
+    function togglePlay() {
+      if (state.currentIndex === -1) {
+        if (state.videos.length) playVideo(0);
+        return;
+      }
+      video.paused ? video.play() : video.pause();
+    }
+
+    function syncPlayIcon() {
+      const icon = video.paused ? '▶' : '⏸';
+      playBtn.textContent        = icon;
+      overlayPlayBtn.textContent = icon;
+      miniPlayBtn.textContent    = icon;
+      videoOverlay.classList.toggle('playing', !video.paused);
+
+      if (video.paused) {
+        // Always show overlay when paused so the play button is visible.
+        showOverlay();
+      } else {
+        // Video started playing: show briefly then auto-hide.
+        showOverlay();
+      }
+    }
+
+
+    // ----------------------------------------------------------------
+    // Long-Press 2x Speed (touch + mouse)
+    // Hold right half: 2x forward speed
+    // Hold left half: seek backward at 2x rate via interval
+    // ----------------------------------------------------------------
+    let longPressTimer  = null;
+    let rewindInterval  = null;
+    let longPressActive = false;
+    const LONG_PRESS_DELAY = 400;  // ms before activating
+
+    function showSpeedIndicator(text) {
+      speedIndicator.textContent = text;
+      speedIndicator.classList.add('visible');
+    }
+
+    function hideSpeedIndicator() {
+      speedIndicator.classList.remove('visible');
+    }
+
+    function startLongPress(clientX, rect) {
+      longPressTimer = setTimeout(() => {
+        longPressActive = true;
+        const isRight = clientX > rect.left + rect.width / 2;
+
+        if (isRight) {
+          video.playbackRate = 2;
+          showSpeedIndicator('2x');
+        } else {
+          // Manually seek backward: ~2 seconds per real second
+          rewindInterval = setInterval(() => {
+            video.currentTime = Math.max(0, video.currentTime - 0.2);
+          }, 100);
+          showSpeedIndicator('2x');
+        }
+      }, LONG_PRESS_DELAY);
+    }
+
+    function cancelLongPress() {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+
+      if (longPressActive) {
+        longPressActive = false;
+        clearInterval(rewindInterval);
+        rewindInterval = null;
+        video.playbackRate = parseFloat(speedSelect.value);
+        hideSpeedIndicator();
+      }
+    }
+
+    // Attach to the video wrapper (not the mini overlay area, only when video is active)
+    videoWrapper.addEventListener('mousedown', (e) => {
+      if (state.miniActive) return;          // don't interfere with dragging
+      if (state.currentIndex === -1) return; // no video loaded
+      const rect = videoWrapper.getBoundingClientRect();
+      startLongPress(e.clientX, rect);
+    });
+
+    videoWrapper.addEventListener('mouseup',    cancelLongPress);
+    videoWrapper.addEventListener('mouseleave', cancelLongPress);
+
+    videoWrapper.addEventListener('touchstart', (e) => {
+      if (state.miniActive) return;
+      if (state.currentIndex === -1) return;
+
+      // Double-tap detection runs first; let it resolve, then start long-press
+      const rect = videoWrapper.getBoundingClientRect();
+      startLongPress(e.touches[0].clientX, rect);
+    }, { passive: true });
+
+    videoWrapper.addEventListener('touchend',   cancelLongPress);
+    videoWrapper.addEventListener('touchcancel', cancelLongPress);
+
+
+    // ----------------------------------------------------------------
+    // Double-tap seek (touch only)
+    // ----------------------------------------------------------------
+    let lastTap = 0;
+
+    videoWrapper.addEventListener('touchstart', (e) => {
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        // Double-tap detected: cancel any pending long-press so it doesn't fire
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+
+        const rect = videoWrapper.getBoundingClientRect();
+        const x    = e.touches[0].clientX - rect.left;
+        if (x > rect.width / 2) {
+          video.currentTime += 10;
+          showToast('+10s');
+        } else {
+          video.currentTime -= 10;
+          showToast('-10s');
+        }
+      }
+      lastTap = now;
+    }, { passive: true });
+
+
+    // ----------------------------------------------------------------
+    // Video event listeners
+    // ----------------------------------------------------------------
+    video.addEventListener('timeupdate', () => {
+      if (!video.duration) return;
+      const pct = (video.currentTime / video.duration) * 100;
+      seekBar.value             = pct;
+      seekFilled.style.width    = `${pct}%`;
+      currentTimeEl.textContent = fmtTime(video.currentTime);
+    });
+
+    video.addEventListener('progress', () => {
+      if (video.buffered.length && video.duration) {
+        const end = video.buffered.end(video.buffered.length - 1);
+        seekBuffered.style.width = `${(end / video.duration) * 100}%`;
+      }
+    });
+
+    video.addEventListener('loadedmetadata', () => {
+      totalTimeEl.textContent = fmtTime(video.duration);
+      syncPlayIcon();
+    });
+
+    video.addEventListener('play',  syncPlayIcon);
+    video.addEventListener('pause', syncPlayIcon);
+
+    video.addEventListener('ended', () => {
+      syncPlayIcon();
+      if (autoplayToggle.checked && state.currentIndex < state.videos.length - 1) {
+        setTimeout(() => playVideo(state.currentIndex + 1), 800);
+      }
+    });
+
+    video.addEventListener('waiting', () => videoLoading.classList.remove('hidden'));
+    video.addEventListener('playing', () => videoLoading.classList.add('hidden'));
+    video.addEventListener('canplay', () => videoLoading.classList.add('hidden'));
+    video.addEventListener('error',   () => {
+      videoLoading.classList.add('hidden');
+      showToast('Could not load video. Check server logs.');
+    });
+
+    video.addEventListener('volumechange', () => {
+      muteBtn.textContent = (video.muted || video.volume === 0) ? '🔇' : '🔊';
+      if (!video.muted) volumeSlider.value = video.volume;
+      savePrefs();
+    });
+
+
+    // ----------------------------------------------------------------
+    // Controls
+    // ----------------------------------------------------------------
+    // ---- Overlay visibility (independent of playback) ----
+    // Tapping/clicking anywhere on the overlay area toggles the overlay itself.
+    // Only the center play button actually pauses/plays the video.
+    let overlayAutoHideTimer = null;
+
+    function showOverlay() {
+      videoOverlay.classList.remove('overlay-hidden');
+      clearTimeout(overlayAutoHideTimer);
+      // Auto-hide after 3s while playing; stay visible while paused.
+      if (!video.paused) {
+        overlayAutoHideTimer = setTimeout(() => {
+          videoOverlay.classList.add('overlay-hidden');
+        }, 3000);
+      }
+    }
+
+    function hideOverlay() {
+      clearTimeout(overlayAutoHideTimer);
+      videoOverlay.classList.add('overlay-hidden');
+    }
+
+    playBtn.addEventListener('click',        togglePlay);
+    overlayPlayBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // don't bubble up and trigger the overlay toggle
+      togglePlay();
+    });
+    miniPlayBtn.addEventListener('click', togglePlay);
+
+    videoOverlay.addEventListener('click', (e) => {
+      // Button click is handled above with stopPropagation; this only fires for the backdrop.
+      if (videoOverlay.classList.contains('overlay-hidden')) {
+        showOverlay();
+      } else {
+        // Only hide when playing; keep it visible when paused so user can see the state.
+        if (!video.paused) hideOverlay();
+      }
+    });
+
+    videoOverlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOverlay(); }
+    });
+
+    prevBtn.addEventListener('click',     () => playVideo(state.currentIndex - 1));
+    nextBtn.addEventListener('click',     () => playVideo(state.currentIndex + 1));
+    miniPrevBtn.addEventListener('click', () => playVideo(state.currentIndex - 1));
+    miniNextBtn.addEventListener('click', () => playVideo(state.currentIndex + 1));
+    miniSkipBtn.addEventListener('click', () => { video.currentTime += 10; });
+
+    muteBtn.addEventListener('click', () => { video.muted = !video.muted; });
+    volumeSlider.addEventListener('input', () => {
+      video.volume = parseFloat(volumeSlider.value);
+      video.muted  = video.volume === 0;
+      savePrefs();
+    });
+
+    speedSelect.addEventListener('change', () => {
+      video.playbackRate = parseFloat(speedSelect.value);
+      savePrefs();
+    });
+
+    autoplayToggle.addEventListener('change', savePrefs);
+
+    seekBar.addEventListener('input', () => {
+      const pct = parseFloat(seekBar.value);
+      seekFilled.style.width = `${pct}%`;
+      if (video.duration) video.currentTime = (pct / 100) * video.duration;
+    });
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        (videoWrapper.requestFullscreen || videoWrapper.webkitRequestFullscreen)?.call(videoWrapper);
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
+    });
+
+
+    // ----------------------------------------------------------------
+    // Mini-player: activate / deactivate
+    // ----------------------------------------------------------------
+    let miniPlaceholderHeight = 0;
+
+    function activateMini() {
+      if (state.miniActive) return;
+      state.miniActive = true;
+      miniPlaceholderHeight = playerContainer.offsetHeight;
+      playerContainer.style.minHeight = `${miniPlaceholderHeight}px`;
+      videoWrapper.classList.add('mini-mode');
+      // Reset to default bottom-right position
+      videoWrapper.style.right  = '24px';
+      videoWrapper.style.bottom = '24px';
+      videoWrapper.style.left   = 'auto';
+      videoWrapper.style.top    = 'auto';
+    }
+
+    function deactivateMini() {
+      if (!state.miniActive) return;
+      state.miniActive = false;
+      videoWrapper.classList.remove('mini-mode');
+      videoWrapper.style.cssText = ''; // clear inline position overrides
+      playerContainer.style.minHeight = '';
+    }
+
+    // "Back" button: scroll back to the main player area
+    miniClose.addEventListener('click', () => {
+      deactivateMini();
+      playerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // "X" button: stop the video and fully hide the mini-player
+    miniCloseX.addEventListener('click', (e) => {
+      e.stopPropagation();
+      video.pause();
+      video.src = '';
+      state.currentIndex = -1;
+      deactivateMini();
+      playerTitle.textContent = 'Select a video';
+      playerMeta.textContent  = '';
+      topbarTitle.textContent = 'JoeTube';
+      document.title          = 'JoeTube';
+      galleryGrid.querySelectorAll('.video-card').forEach(c => c.classList.remove('playing'));
+      syncPlayIcon();
+    });
+
+    function setupPlayerObserver() {
+      state.playerObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting && state.currentIndex !== -1) {
+            activateMini();
+          } else {
+            deactivateMini();
+          }
+        });
+      }, { threshold: 0, rootMargin: '-80px 0px 0px 0px' });
+
+      state.playerObserver.observe(playerSection);
+    }
+
+
+    // ----------------------------------------------------------------
+    // Draggable Mini-player
+    // ----------------------------------------------------------------
+    let dragging   = false;
+    let dragOffset = { x: 0, y: 0 };
+
+    function getMiniRect() {
+      return videoWrapper.getBoundingClientRect();
+    }
+
+    function onDragStart(clientX, clientY) {
+      if (!state.miniActive) return;
+      dragging = true;
+      const rect = getMiniRect();
+      dragOffset.x = clientX - rect.left;
+      dragOffset.y = clientY - rect.top;
+      videoWrapper.classList.add('dragging');
+    }
+
+    function onDragMove(clientX, clientY) {
+      if (!dragging) return;
+      const w = videoWrapper.offsetWidth;
+      const h = videoWrapper.offsetHeight;
+      let x = clientX - dragOffset.x;
+      let y = clientY - dragOffset.y;
+
+      // Clamp within viewport
+      x = Math.max(0, Math.min(window.innerWidth  - w, x));
+      y = Math.max(0, Math.min(window.innerHeight - h, y));
+
+      videoWrapper.style.left   = `${x}px`;
+      videoWrapper.style.top    = `${y}px`;
+      videoWrapper.style.right  = 'auto';
+      videoWrapper.style.bottom = 'auto';
+    }
+
+    function onDragEnd() {
+      dragging = false;
+      videoWrapper.classList.remove('dragging');
+    }
+
+    // Mouse drag
+    videoWrapper.addEventListener('mousedown', (e) => {
+      if (!state.miniActive) return;
+      // Only drag from the overlay handle or empty overlay areas, not buttons
+      if (e.target.tagName === 'BUTTON' || e.target.tagName === 'VIDEO') return;
+      onDragStart(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (dragging) {
+        e.preventDefault();
+        onDragMove(e.clientX, e.clientY);
+      }
+    });
+
+    document.addEventListener('mouseup', onDragEnd);
+
+    // Touch drag (mini-player)
+    videoWrapper.addEventListener('touchstart', (e) => {
+      if (!state.miniActive) return;
+      if (e.target.tagName === 'BUTTON' || e.target.tagName === 'VIDEO') return;
+      onDragStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      if (dragging) {
+        onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    document.addEventListener('touchend', onDragEnd);
+
+
+    // ----------------------------------------------------------------
+    // Sidebar
+    // ----------------------------------------------------------------
+    sidebarToggle.addEventListener('click', () => sidebar.classList.add('open'));
+    sidebarClose.addEventListener('click',  () => sidebar.classList.remove('open'));
+
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth < 768 &&
+          sidebar.classList.contains('open') &&
+          !sidebar.contains(e.target) &&
+          !sidebarToggle.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+
+
+    // ----------------------------------------------------------------
+    // Keyboard shortcuts
+    // ----------------------------------------------------------------
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+
+      switch (e.key) {
+        case ' ':
+        case 'k':
+          e.preventDefault();
+          togglePlay();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          video.currentTime = Math.min(video.duration || 0, video.currentTime + 5);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          video.currentTime = Math.max(0, video.currentTime - 5);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          video.volume = Math.min(1, video.volume + 0.1);
+          volumeSlider.value = video.volume;
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          video.volume = Math.max(0, video.volume - 0.1);
+          volumeSlider.value = video.volume;
+          break;
+        case 'm':
+        case 'M':
+          video.muted = !video.muted;
+          break;
+        case 'n':
+        case 'N':
+          if (state.currentIndex < state.videos.length - 1) playVideo(state.currentIndex + 1);
+          break;
+        case 'p':
+        case 'P':
+          if (state.currentIndex > 0) playVideo(state.currentIndex - 1);
+          break;
+        case 'f':
+        case 'F':
+          fullscreenBtn.click();
+          break;
+      }
+    });
+
+
+    // ----------------------------------------------------------------
+    // Toast
+    // ----------------------------------------------------------------
+    let toastTimer;
+    function showToast(msg, duration = 2500) {
+      toastEl.textContent = msg;
+      toastEl.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.add('hidden'), duration);
+    }
+
+
+    // ----------------------------------------------------------------
+    // Formatters & escaping
+    // ----------------------------------------------------------------
+    function fmtTime(secs) {
+      if (!secs || isNaN(secs)) return '0:00';
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = Math.floor(secs % 60);
+      if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return '';
+      if (bytes >= 1e9) return `${(bytes / 1e9).toFixed(2)} GB`;
+      return `${(bytes / 1e6).toFixed(1)} MB`;
+    }
+
+    function stripExt(name) {
+      return name.replace(/\.[^.]+$/, '');
+    }
+
+    function getExt(name) {
+      return (name.match(/\.([^.]+)$/) || ['', ''])[1].toUpperCase();
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+      );
+    }
+
+    function escAttr(s) { return escHtml(s); }
+
+
+    // ----------------------------------------------------------------
+    // Init
+    // ----------------------------------------------------------------
+    loadPrefs();
+    fetchFolders();
+    fetchAllVideos();     // pre-load global search index
+    setupPlayerObserver();
+
+  })();
+  </script>
+
+</body>
+</html>
